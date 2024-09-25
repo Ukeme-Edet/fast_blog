@@ -1,55 +1,112 @@
-from pytest import fixture
+from pytest import fixture, raises
 from faker import Faker
+from model.user import UserCreate, UserCreate, UserInDB, UserUpdate
 import os
+from errors.errors import Duplicate, Missing
 
 os.environ["ENV"] = "test"
-from data.user import *
+from data import user
 
 faker = Faker()
 
 
 @fixture
-def user():
-    user = User(username=faker.name(), password_hash=faker.name())
-    return user
+def new_user() -> UserCreate:
+    return UserCreate(username=faker.first_name(), password=faker.password())
 
 
-def test_get_all_users(user):
-    user = create_user(user)
-    assert user in get_all_users()
+@fixture
+def updated_user() -> UserUpdate:
+    return UserUpdate(
+        id=faker.uuid4(),
+        username=faker.first_name(),
+        password=faker.password(),
+        time_updated=faker.date_time(),
+    )
 
 
-def test_create_user(user):
-    user = create_user(user)
-    assert get_user_by_id(user.id) == user
+def test_create_user(new_user: UserCreate):
+    created_user = user.create_user(new_user)
+    assert created_user.username == new_user.username
+    assert created_user.password_hash != new_user.password
 
 
-def update_user(user):
-    user = create_user(user)
-    user.username = "newusername"
-    user = update_user(user)
-    assert get_user_by_id(user.id).username == "newusername"
+def test_create_user_duplicate(new_user: UserCreate):
+    user.create_user(new_user)
+    with raises(Duplicate) as exc_info:
+        user.create_user(new_user)
+    assert (
+        exc_info.value.msg
+        == f"User with username {new_user.username!r} already exists"
+    )
 
 
-def test_delete_user(user):
-    user = create_user(user)
-    user = delete_user(user)
-    assert get_user_by_id(user.id) is None
+def test_update_user(new_user: UserCreate, updated_user: UserUpdate):
+    created_user = user.create_user(new_user)
+    updated_user.id = created_user.id
+    user.update_user(updated_user)
+    user_by_id = user.get_user_by_id(created_user.id)
+    assert user_by_id.username == updated_user.username
+    assert user_by_id.password_hash != updated_user.password
 
 
-def test_get_user_by_username(user):
-    user = create_user(user)
-    assert get_user_by_username(user.username) == user
+def test_update_user_missing(updated_user: UserUpdate):
+    with raises(Missing) as exc_info:
+        user.update_user(updated_user)
+    assert exc_info.value.msg == f"User with id {updated_user.id!r} not found"
 
 
-def test_get_user_by_id(user):
-    user = create_user(user)
-    assert get_user_by_id(user.id) == user
+def test_update_user_duplicate(new_user: UserCreate):
+    created_user = user.create_user(new_user)
+    new_user.username = faker.first_name()
+    user.create_user(new_user)
+    with raises(Duplicate) as exc_info:
+        user.update_user(
+            UserUpdate(
+                id=created_user.id,
+                username=new_user.username,
+                password=None,
+                time_updated=faker.date_time(),
+            )
+        )
+    assert (
+        exc_info.value.msg
+        == f"User with username {new_user.username!r} already exists"
+    )
 
 
-def test_get_user_by_id_none():
-    assert get_user_by_id("123") is None
+def test_delete_user(new_user: UserCreate):
+    created_user = user.create_user(new_user)
+    user.delete_user(created_user)
+    with raises(Missing) as exc_info:
+        user.get_user_by_id(created_user.id)
+    assert exc_info.value.msg == f"User with id {created_user.id!r} not found"
 
 
-def test_get_user_by_username_none():
-    assert get_user_by_username("123") is None
+def test_delete_user_missing():
+    id = faker.uuid4()
+    with raises(Missing) as exc_info:
+        user.delete_user(
+            UserInDB(
+                id=id,
+                username=faker.first_name(),
+                password_hash=faker.password(),
+                time_created=faker.date_time(),
+                time_updated=faker.date_time(),
+            )
+        )
+    assert exc_info.value.msg == f"User with id {id!r} not found"
+
+
+def test_get_user_by_id(new_user: UserCreate):
+    created_user = user.create_user(new_user)
+    user_id = created_user.id
+    user_by_id = user.get_user_by_id(user_id)
+    assert user_by_id.id == user_id
+
+
+def test_get_user_by_username(new_user: UserCreate):
+    created_user = user.create_user(new_user)
+    username = created_user.username
+    user_by_username = user.get_user_by_username(username)
+    assert user_by_username.username == username
