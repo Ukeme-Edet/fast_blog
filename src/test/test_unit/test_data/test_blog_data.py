@@ -1,3 +1,9 @@
+"""
+Unit tests for blog data
+
+This file contains the unit tests for the blog data.
+"""
+
 from pytest import fixture, raises
 import os
 from faker import Faker
@@ -14,6 +20,12 @@ faker = Faker()
 
 @fixture
 def this_user() -> UserInDB:
+    """
+    Create a user
+
+    Returns:
+        UserInDB: UserInDB object
+    """
     return user.create_user(
         UserCreate(username=faker.user_name(), password=faker.password())
     )
@@ -21,6 +33,15 @@ def this_user() -> UserInDB:
 
 @fixture
 def new_blog(this_user: UserInDB) -> BlogCreate:
+    """
+    Create a blog
+
+    Args:
+        this_user (UserInDB): UserInDB object
+
+    Returns:
+        BlogCreate: BlogCreate object
+    """
     return BlogCreate(
         user_id=this_user.id,
         title=faker.sentence(),
@@ -30,15 +51,24 @@ def new_blog(this_user: UserInDB) -> BlogCreate:
 
 @fixture
 def updated_blog() -> BlogUpdate:
+    """
+    Create an updated blog
+
+    Returns:
+        BlogUpdate: BlogUpdate object
+    """
     return BlogUpdate(
-        id=faker.uuid4(),
-        title=faker.sentence(),
-        content=faker.text(),
-        time_updated=faker.date_time(),
+        id=str(faker.uuid4()), title=faker.sentence(), content=faker.text()
     )
 
 
 def test_create_blog(new_blog: BlogCreate):
+    """
+    Test create blog
+
+    Args:
+        new_blog (BlogCreate): BlogCreate object
+    """
     created_blog = blog.create_blog(new_blog)
     assert created_blog.title == new_blog.title
     assert created_blog.content == new_blog.content
@@ -46,6 +76,13 @@ def test_create_blog(new_blog: BlogCreate):
 
 
 def test_update_blog(new_blog: BlogCreate, updated_blog: BlogUpdate):
+    """
+    Test update blog
+
+    Args:
+        new_blog (BlogCreate): BlogCreate object
+        updated_blog (BlogUpdate): BlogUpdate object
+    """
     created_blog = blog.create_blog(new_blog)
     updated_blog.id = created_blog.id
     blog.update_blog(updated_blog)
@@ -56,12 +93,24 @@ def test_update_blog(new_blog: BlogCreate, updated_blog: BlogUpdate):
 
 
 def test_update_blog_missing(updated_blog: BlogUpdate):
+    """
+    Test update blog missing
+
+    Args:
+        updated_blog (BlogUpdate): BlogUpdate object
+    """
     with raises(Missing) as exc_info:
         blog.update_blog(updated_blog)
     assert exc_info.value.msg == f"Blog with id {updated_blog.id!r} not found"
 
 
 def test_delete_blog(new_blog: BlogCreate):
+    """
+    Test delete blog
+
+    Args:
+        new_blog (BlogCreate): BlogCreate object
+    """
     created_blog = blog.create_blog(new_blog)
     blog.delete_blog(created_blog)
     with raises(Missing) as exc_info:

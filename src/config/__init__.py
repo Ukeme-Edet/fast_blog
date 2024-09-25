@@ -1,12 +1,26 @@
+"""
+This module contains the Config class which is responsible for loading the environment variables and returning the
+"""
+
 from dotenv import load_dotenv
 import os
 
 
 class Config:
+    """
+    Config class
+    """
+
     def __init__(self):
+        """
+        Constructor
+        """
         pass
 
     def get_db_uri(self):
+        """
+        Get the database URI
+        """
         load_dotenv()
         if os.getenv("ENV") == "dev":
             return os.getenv("DEV_DB_URI", "sqlite:///dev.db")

@@ -1,3 +1,9 @@
+"""
+Test user data
+
+This module contains the unit tests for the user data module.
+"""
+
 from pytest import fixture, raises
 from faker import Faker
 from model.user import UserCreate, UserCreate, UserInDB, UserUpdate
@@ -12,25 +18,49 @@ faker = Faker()
 
 @fixture
 def new_user() -> UserCreate:
+    """
+    Create a new user
+
+    Returns:
+        UserCreate: A new user
+    """
     return UserCreate(username=faker.user_name(), password=faker.password())
 
 
 @fixture
 def updated_user() -> UserUpdate:
+    """
+    Create an updated user
+
+    Returns:
+        UserUpdate: An updated user
+    """
     return UserUpdate(
-        id=faker.uuid4(),
+        id=str(faker.uuid4()),
         username=faker.user_name(),
         password=faker.password(),
     )
 
 
 def test_create_user(new_user: UserCreate):
+    """
+    Test create user
+
+    Args:
+        new_user (UserCreate): A new user
+    """
     created_user = user.create_user(new_user)
     assert created_user.username == new_user.username
     assert created_user.password_hash != new_user.password
 
 
 def test_create_user_duplicate(new_user: UserCreate):
+    """
+    Test create user duplicate
+
+    Args:
+        new_user (UserCreate): A new user
+    """
     user.create_user(new_user)
     with raises(Duplicate) as exc_info:
         user.create_user(new_user)
@@ -41,6 +71,13 @@ def test_create_user_duplicate(new_user: UserCreate):
 
 
 def test_update_user(new_user: UserCreate, updated_user: UserUpdate):
+    """
+    Test update user
+
+    Args:
+        new_user (UserCreate): A new user
+        updated_user (UserUpdate): An updated user
+    """
     created_user = user.create_user(new_user)
     updated_user.id = created_user.id
     user.update_user(updated_user)
@@ -50,12 +87,24 @@ def test_update_user(new_user: UserCreate, updated_user: UserUpdate):
 
 
 def test_update_user_missing(updated_user: UserUpdate):
+    """
+    Test update user missing
+
+    Args:
+        updated_user (UserUpdate): An updated user
+    """
     with raises(Missing) as exc_info:
         user.update_user(updated_user)
     assert exc_info.value.msg == f"User with id {updated_user.id!r} not found"
 
 
 def test_update_user_duplicate(new_user: UserCreate):
+    """
+    Test update user duplicate
+
+    Args:
+        new_user (UserCreate): A new user
+    """
     created_user = user.create_user(new_user)
     new_user.username = faker.user_name()
     user.create_user(new_user)
@@ -65,7 +114,6 @@ def test_update_user_duplicate(new_user: UserCreate):
                 id=created_user.id,
                 username=new_user.username,
                 password=None,
-                time_updated=faker.date_time(),
             )
         )
     assert (
@@ -75,6 +123,12 @@ def test_update_user_duplicate(new_user: UserCreate):
 
 
 def test_delete_user(new_user: UserCreate):
+    """
+    Test delete user
+
+    Args:
+        new_user (UserCreate): A new user
+    """
     created_user = user.create_user(new_user)
     user.delete_user(created_user)
     with raises(Missing) as exc_info:
@@ -83,7 +137,10 @@ def test_delete_user(new_user: UserCreate):
 
 
 def test_delete_user_missing():
-    id = faker.uuid4()
+    """
+    Test delete user missing
+    """
+    id = str(faker.uuid4())
     with raises(Missing) as exc_info:
         user.delete_user(
             UserInDB(
@@ -98,6 +155,12 @@ def test_delete_user_missing():
 
 
 def test_get_user_by_id(new_user: UserCreate):
+    """
+    Test get user by id
+
+    Args:
+        new_user (UserCreate): A new user
+    """
     created_user = user.create_user(new_user)
     user_id = created_user.id
     user_by_id = user.get_user_by_id(user_id)
@@ -105,6 +168,12 @@ def test_get_user_by_id(new_user: UserCreate):
 
 
 def test_get_user_by_username(new_user: UserCreate):
+    """
+    Test get user by username
+
+    Args:
+        new_user (UserCreate): A new user
+    """
     created_user = user.create_user(new_user)
     username = created_user.username
     user_by_username = user.get_user_by_username(username)
