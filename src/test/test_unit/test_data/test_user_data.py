@@ -12,16 +12,15 @@ faker = Faker()
 
 @fixture
 def new_user() -> UserCreate:
-    return UserCreate(username=faker.first_name(), password=faker.password())
+    return UserCreate(username=faker.user_name(), password=faker.password())
 
 
 @fixture
 def updated_user() -> UserUpdate:
     return UserUpdate(
         id=faker.uuid4(),
-        username=faker.first_name(),
+        username=faker.user_name(),
         password=faker.password(),
-        time_updated=faker.date_time(),
     )
 
 
@@ -58,7 +57,7 @@ def test_update_user_missing(updated_user: UserUpdate):
 
 def test_update_user_duplicate(new_user: UserCreate):
     created_user = user.create_user(new_user)
-    new_user.username = faker.first_name()
+    new_user.username = faker.user_name()
     user.create_user(new_user)
     with raises(Duplicate) as exc_info:
         user.update_user(
@@ -89,7 +88,7 @@ def test_delete_user_missing():
         user.delete_user(
             UserInDB(
                 id=id,
-                username=faker.first_name(),
+                username=faker.user_name(),
                 password_hash=faker.password(),
                 time_created=faker.date_time(),
                 time_updated=faker.date_time(),

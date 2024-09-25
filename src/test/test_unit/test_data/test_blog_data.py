@@ -15,7 +15,7 @@ faker = Faker()
 @fixture
 def this_user() -> UserInDB:
     return user.create_user(
-        UserCreate(username=faker.first_name(), password=faker.password())
+        UserCreate(username=faker.user_name(), password=faker.password())
     )
 
 
@@ -52,7 +52,7 @@ def test_update_blog(new_blog: BlogCreate, updated_blog: BlogUpdate):
     blog_by_id = blog.get_blog_by_id(created_blog.id)
     assert blog_by_id.title == updated_blog.title
     assert blog_by_id.content == updated_blog.content
-    assert blog_by_id.time_updated != updated_blog.time_updated
+    assert blog_by_id.time_updated != created_blog.time_updated
 
 
 def test_update_blog_missing(updated_blog: BlogUpdate):

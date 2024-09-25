@@ -45,9 +45,6 @@ class UserUpdate(BaseModel):
     password: Optional[str] = Field(
         ..., min_length=8, description="The password of the user"
     )
-    time_updated: datetime = Field(
-        ..., description="The time the user was last updated"
-    )
 
 
 class UserInDB(User):

@@ -38,9 +38,6 @@ class BlogUpdate(BaseModel):
     content: Optional[str] = Field(
         None, description="The content of the blog", min_length=2
     )
-    time_updated: datetime = Field(
-        ..., description="The time the blog was last updated"
-    )
 
 
 class BlogInDB(Blog):
