@@ -1,74 +1,69 @@
-from pytest import fixture
+from pytest import fixture, raises
 import os
 from faker import Faker
 
+from errors.errors import Duplicate, Missing
+
 os.environ["ENV"] = "test"
-from data.blog import *
-from data.user import *
+from data import blog, user
+from model.blog import BlogInDB, BlogCreate, BlogUpdate
+from model.user import UserInDB, UserCreate
 
 faker = Faker()
 
 
 @fixture
-def user():
-    user = User(username=faker.name(), password_hash=faker.name())
-    return user
+def this_user() -> UserInDB:
+    return user.create_user(
+        UserCreate(username=faker.first_name(), password=faker.password())
+    )
 
 
 @fixture
-def blog():
-    blog = Blog(title="testtitle", content="testcontent")
-    return blog
+def new_blog(this_user: UserInDB) -> BlogCreate:
+    return BlogCreate(
+        user_id=this_user.id,
+        title=faker.sentence(),
+        content=faker.text(),
+    )
 
 
-def test_get_all_blogs(blog: Blog, user: User):
-    user = create_user(user)
-    blog.user_id = user.id
-    blog = create_blog(blog)
-    assert blog in get_all_blogs()
+@fixture
+def updated_blog() -> BlogUpdate:
+    return BlogUpdate(
+        id=faker.uuid4(),
+        title=faker.sentence(),
+        content=faker.text(),
+        time_updated=faker.date_time(),
+    )
 
 
-def test_create_blog(blog: Blog, user: User):
-    user = create_user(user)
-    blog.user_id = user.id
-    blog = create_blog(blog)
-    assert get_blog_by_id(blog.id) == blog
+def test_create_blog(new_blog: BlogCreate):
+    created_blog = blog.create_blog(new_blog)
+    assert created_blog.title == new_blog.title
+    assert created_blog.content == new_blog.content
+    assert created_blog.user_id == new_blog.user_id
 
 
-def test_update_blog(blog: Blog, user: User):
-    user = create_user(user)
-    blog.user_id = user.id
-    blog = create_blog(blog)
-    blog.title = "newtitle"
-    blog = update_blog(blog)
-    assert get_blog_by_id(blog.id).title == "newtitle"
+def test_update_blog(new_blog: BlogCreate, updated_blog: BlogUpdate):
+    created_blog = blog.create_blog(new_blog)
+    updated_blog.id = created_blog.id
+    blog.update_blog(updated_blog)
+    blog_by_id = blog.get_blog_by_id(created_blog.id)
+    assert blog_by_id.title == updated_blog.title
+    assert blog_by_id.content == updated_blog.content
+    assert blog_by_id.time_updated != updated_blog.time_updated
 
 
-def test_delete_blog(blog: Blog, user: User):
-    user = create_user(user)
-    blog.user_id = user.id
-    blog = create_blog(blog)
-    blog = delete_blog(blog)
-    assert get_blog_by_id(blog.id) is None
+def test_update_blog_missing(updated_blog: BlogUpdate):
+    with raises(Missing) as exc_info:
+        blog.update_blog(updated_blog)
+    assert exc_info.value.msg == f"Blog with id {updated_blog.id!r} not found"
 
 
-def test_get_blog_by_id(blog: Blog, user: User):
-    user = create_user(user)
-    blog.user_id = user.id
-    blog = create_blog(blog)
-    assert get_blog_by_id(blog.id) == blog
-
-
-def test_get_blogs_by_user_id(blog: Blog, user: User):
-    user = create_user(user)
-    blog.user_id = user.id
-    blog = create_blog(blog)
-    assert get_blogs_by_user_id(user.id) == [blog]
-
-
-def test_get_blog_by_id_none():
-    assert get_blog_by_id("123") is None
-
-
-def test_get_blogs_by_user_id_none():
-    assert get_blogs_by_user_id("123") == []
+def test_delete_blog(new_blog: BlogCreate):
+    created_blog = blog.create_blog(new_blog)
+    blog.delete_blog(created_blog)
+    with raises(Missing) as exc_info:
+        blog.get_blog_by_id(created_blog.id)
+    assert exc_info.value.msg == f"Blog with id {created_blog.id!r} not found"
