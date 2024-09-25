@@ -1,3 +1,9 @@
+"""
+Blog Data
+
+This module contains the data layer for the Blog model.
+"""
+
 import uuid
 from sqlmodel import Field, SQLModel, Session, select, Relationship
 from datetime import UTC, datetime
@@ -8,6 +14,19 @@ from . import engine
 
 
 class Blog(SQLModel, table=True):
+    """
+    Blog Table
+
+    Attributes:
+        id: str - primary key
+        user_id: str - foreign key
+        title: str - index
+        content: str
+        time_created: datetime
+        time_updated: datetime
+        user: User - relationship
+    """
+
     id: str = Field(
         primary_key=True, default_factory=lambda: str(uuid.uuid4())
     )
@@ -20,6 +39,15 @@ class Blog(SQLModel, table=True):
 
 
 def get_blog_by_id(id: str) -> BlogInDB:
+    """
+    Get a blog by id
+
+    Args:
+        id: str - id of the blog
+
+    Returns:
+        BlogInDB: BlogInDB object
+    """
     with Session(engine) as session:
         blog = session.exec(select(Blog).where(Blog.id == id)).first()
         if blog:
@@ -28,18 +56,42 @@ def get_blog_by_id(id: str) -> BlogInDB:
 
 
 def get_blogs_by_user_id(user_id: str):
+    """
+    Get all blogs by user id
+
+    Args:
+        user_id: str - id of the user
+
+    Returns:
+        List[Blog]: List of Blog objects
+    """
     with Session(engine) as session:
         blogs = session.exec(select(Blog).where(Blog.user_id == user_id)).all()
         return blogs
 
 
 def get_all_blogs():
+    """
+    Get all blogs
+
+    Returns:
+        List[Blog]: List of Blog objects
+    """
     with Session(engine) as session:
         blogs = session.exec(select(Blog)).all()
         return blogs
 
 
 def create_blog(blog: BlogCreate) -> BlogInDB:
+    """
+    Create a new blog
+
+    Args:
+        blog (BlogCreate): BlogCreate object
+
+    Returns:
+        BlogInDB: BlogInDB object
+    """
     with Session(engine) as session:
         try:
             new_blog = Blog(
@@ -57,6 +109,15 @@ def create_blog(blog: BlogCreate) -> BlogInDB:
 
 
 def update_blog(blog: BlogUpdate) -> BlogInDB:
+    """
+    Update a blog
+
+    Args:
+        blog (BlogUpdate): BlogUpdate object
+
+    Returns:
+        BlogInDB: BlogInDB object
+    """
     with Session(engine) as session:
         try:
             try:
@@ -78,6 +139,12 @@ def update_blog(blog: BlogUpdate) -> BlogInDB:
 
 
 def delete_blog(blog: BlogInDB):
+    """
+    Delete a blog
+
+    Args:
+        blog (BlogInDB): BlogInDB object
+    """
     with Session(engine) as session:
         try:
             try:

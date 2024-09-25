@@ -1,3 +1,9 @@
+"""
+User data access module.
+
+This module contains the data access functions for the User model.
+"""
+
 from datetime import UTC, datetime
 import uuid
 from sqlmodel import Field, SQLModel, Session, select, Relationship
@@ -10,6 +16,18 @@ from model.blog import Blog
 
 
 class User(SQLModel, table=True):
+    """
+    User Table
+
+    Attributes:
+        id: str - primary key
+        username: str - unique, index
+        password_hash: str
+        time_created: datetime
+        time_updated: datetime
+        blogs: list[Blog] - relationship
+    """
+
     id: str = Field(
         primary_key=True, default_factory=lambda: str(uuid.uuid4())
     )
@@ -23,6 +41,15 @@ class User(SQLModel, table=True):
 
 
 def get_user_by_username(username: str) -> UserInDB:
+    """
+    Get a user by username
+
+    Args:
+        username (str): username of the user
+
+    Returns:
+        UserInDB: UserInDB object
+    """
     with Session(engine) as session:
         user = session.exec(
             select(User).where(User.username == username)
@@ -33,6 +60,15 @@ def get_user_by_username(username: str) -> UserInDB:
 
 
 def get_user_by_id(id: str) -> UserInDB:
+    """
+    Get a user by id
+
+    Args:
+        id (str): id of the user
+
+    Returns:
+        UserInDB: UserInDB object
+    """
     with Session(engine) as session:
         user = session.exec(select(User).where(User.id == id)).first()
         if user:
@@ -41,12 +77,27 @@ def get_user_by_id(id: str) -> UserInDB:
 
 
 def get_all_users() -> list[UserInDB]:
+    """
+    Get all users
+
+    Returns:
+        List[UserInDB]: List of UserInDB objects
+    """
     with Session(engine) as session:
         users = session.exec(select(User)).all()
         return users
 
 
 def create_user(user: UserCreate) -> UserInDB:
+    """
+    Create a new user
+
+    Args:
+        user (UserCreate): UserCreate object
+
+    Returns:
+        UserInDB: UserInDB object
+    """
     with Session(engine) as session:
         try:
             # Check if username is unique
@@ -74,6 +125,15 @@ def create_user(user: UserCreate) -> UserInDB:
 
 
 def update_user(user: UserUpdate) -> UserInDB:
+    """
+    Update a user
+
+    Args:
+        user (UserUpdate): UserUpdate object
+
+    Returns:
+        UserInDB: UserInDB object
+    """
     with Session(engine) as session:
         try:
             try:
@@ -105,6 +165,12 @@ def update_user(user: UserUpdate) -> UserInDB:
 
 
 def delete_user(user: UserInDB):
+    """
+    Delete a user
+
+    Args:
+        user (UserInDB): UserInDB object
+    """
     with Session(engine) as session:
         try:
             n_user = session.exec(
