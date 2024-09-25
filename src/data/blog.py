@@ -9,7 +9,7 @@ from sqlmodel import Field, SQLModel, Session, select, Relationship
 from datetime import UTC, datetime
 from model.blog import Blog, BlogCreate, BlogUpdate, BlogInDB
 from model.user import User
-from errors.errors import Missing, Duplicate
+from errors.errors import Missing
 from . import engine
 
 

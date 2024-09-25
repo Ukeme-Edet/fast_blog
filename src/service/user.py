@@ -1,3 +1,9 @@
+"""
+User service
+
+This module contains functions to interact with the user data
+"""
+
 from model.user import UserInDB, UserCreate, UserUpdate
 from data import user
 
