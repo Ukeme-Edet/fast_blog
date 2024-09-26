@@ -22,7 +22,7 @@ async def read_user(user_id: str) -> UserOut:
         return user_service.get_user_by_id(user_id)
     except Missing as e:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
 

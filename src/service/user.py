@@ -94,6 +94,6 @@ def delete_user(deleted_user_id: str):
     """
     try:
         deleted_user = user.get_user_by_id(deleted_user_id)
-        user.delete_user(deleted_user)
+        user.delete_user(UserInDB(**deleted_user.model_dump()))
     except Exception as e:
         raise e

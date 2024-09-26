@@ -16,6 +16,6 @@ def create_app():
 
     from web.user import user
 
-    app.include_router(user)
+    app.include_router(user, prefix="/api")
 
     return app
