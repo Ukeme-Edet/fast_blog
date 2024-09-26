@@ -4,12 +4,12 @@ Unit tests for user web
 This module contains the unit tests for the user web module.
 """
 
-from pytest import fixture, raises, mark
+from pytest import fixture, mark
 from faker import Faker
 from httpx import AsyncClient, ASGITransport
 from fastapi import FastAPI
 from httpx import Response
-from model.user import UserCreate, UserInDB, UserOut, UserUpdate
+from model.user import UserCreate, UserOut, UserUpdate
 from service import user as user_service
 from web import create_app
 
