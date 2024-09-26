@@ -1,3 +1,9 @@
+"""
+User API
+
+This module contains the user API
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from errors.errors import Duplicate, Missing
 from model.user import UserCreate, UserOut, UserUpdate
@@ -8,16 +14,34 @@ user = APIRouter(prefix="/user", tags=["user"])
 
 @user.get("/")
 async def user_root():
+    """
+    Root endpoint
+    """
     return {"Hello": "User"}
 
 
 @user.get("/all")
 async def read_all_users() -> list[UserOut]:
+    """
+    Get all users
+
+    Returns:
+        List[UserOut]: List of UserOut objects
+    """
     return user_service.get_all_users()
 
 
 @user.get("/{user_id}")
 async def read_user(user_id: str) -> UserOut:
+    """
+    Get a user by id
+
+    Args:
+        user_id (str): id of the user
+
+    Returns:
+        UserOut: UserOut object
+    """
     try:
         return user_service.get_user_by_id(user_id)
     except Missing as e:
@@ -28,6 +52,15 @@ async def read_user(user_id: str) -> UserOut:
 
 @user.get("/username/{username}")
 async def read_user_by_username(username: str) -> UserOut:
+    """
+    Get a user by username
+
+    Args:
+        username (str): username of the user
+
+    Returns:
+        UserOut: UserOut object
+    """
     try:
         return user_service.get_user_by_username(username)
     except Missing as e:
@@ -38,6 +71,15 @@ async def read_user_by_username(username: str) -> UserOut:
 
 @user.post("/")
 async def create_user(user_create: UserCreate) -> UserOut:
+    """
+    Create a new user
+
+    Args:
+        user_create (UserCreate): UserCreate object
+
+    Returns:
+        UserOut: UserOut object
+    """
     try:
         return user_service.create_user(user_create)
     except Duplicate as e:
@@ -49,6 +91,16 @@ async def create_user(user_create: UserCreate) -> UserOut:
 
 @user.patch("/{user_id}")
 async def update_user(user_id: str, user_update: UserUpdate) -> UserOut:
+    """
+    Update a user
+
+    Args:
+        user_id (str): id of the user
+        user_update (UserUpdate): UserUpdate object
+
+    Returns:
+        UserOut: UserOut object
+    """
     user_update.id = user_id
     try:
         return user_service.update_user(user_update)
@@ -71,6 +123,12 @@ async def update_user(user_id: str, user_update: UserUpdate) -> UserOut:
 
 @user.delete("/{user_id}")
 async def delete_user(user_id: str):
+    """
+    Delete a user
+
+    Args:
+        user_id (str): id of the user
+    """
     try:
         return user_service.delete_user(user_id)
     except Missing as e:
