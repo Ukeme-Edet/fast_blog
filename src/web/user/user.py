@@ -4,7 +4,7 @@ User API
 This module contains the user API
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from errors.errors import Duplicate, Missing
 from model.user import UserCreate, UserOut, UserUpdate
 from service import user as user_service
@@ -69,7 +69,7 @@ async def read_user_by_username(username: str) -> UserOut:
         )
 
 
-@user.post("/")
+@user.post("/", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 async def create_user(user_create: UserCreate) -> UserOut:
     """
     Create a new user
@@ -89,7 +89,9 @@ async def create_user(user_create: UserCreate) -> UserOut:
         )
 
 
-@user.patch("/{user_id}")
+@user.patch(
+    "/{user_id}", response_model=UserOut, status_code=status.HTTP_200_OK
+)
 async def update_user(user_id: str, user_update: UserUpdate) -> UserOut:
     """
     Update a user
@@ -121,7 +123,7 @@ async def update_user(user_id: str, user_update: UserUpdate) -> UserOut:
             )
 
 
-@user.delete("/{user_id}")
+@user.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(user_id: str):
     """
     Delete a user
