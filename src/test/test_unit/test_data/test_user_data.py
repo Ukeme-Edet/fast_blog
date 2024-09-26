@@ -24,7 +24,9 @@ def new_user() -> UserCreate:
     Returns:
         UserCreate: A new user
     """
-    return UserCreate(username=faker.user_name(), password=faker.password())
+    return UserCreate(
+        username=faker.user_name(), password=faker.password()
+    )
 
 
 @fixture

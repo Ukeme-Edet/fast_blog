@@ -7,7 +7,7 @@ This module contains the data layer for the Blog model.
 import uuid
 from sqlmodel import Field, SQLModel, Session, select, Relationship
 from datetime import UTC, datetime
-from model.blog import Blog, BlogCreate, BlogUpdate, BlogInDB
+from model.blog import BlogCreate, BlogUpdate, BlogInDB
 from model.user import User
 from errors.errors import Missing
 from . import engine
@@ -38,7 +38,7 @@ class Blog(SQLModel, table=True):
     user: "User" = Relationship(back_populates="blogs")
 
 
-def get_blog_by_id(id: str) -> BlogInDB:
+def get_blog_by_id(id: str):
     """
     Get a blog by id
 
@@ -103,7 +103,7 @@ def create_blog(blog: BlogCreate) -> BlogInDB:
             session.add(new_blog)
             session.commit()
             session.refresh(new_blog)
-            return new_blog
+            return BlogInDB(**new_blog.model_dump())
         except Exception as e:
             raise e
 

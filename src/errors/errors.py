@@ -24,6 +24,15 @@ class Missing(Exception):
         super().__init__(*args)
         self.msg = msg
 
+    def __str__(self) -> str:
+        """
+        String representation
+
+        Returns:
+            str: Error message
+        """
+        return self.msg
+
 
 class Duplicate(Exception):
     """
@@ -45,3 +54,12 @@ class Duplicate(Exception):
         """
         super().__init__(*args)
         self.msg = msg
+
+    def __str__(self) -> str:
+        """
+        String representation
+
+        Returns:
+            str: Error message
+        """
+        return self.msg

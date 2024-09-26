@@ -27,7 +27,10 @@ def this_user() -> UserInDB:
         UserInDB: UserInDB object
     """
     return user.create_user(
-        UserCreate(username=faker.user_name(), password=faker.password())
+        UserCreate(
+            username=faker.user_name(),
+            password=faker.password(),
+        )
     )
 
 

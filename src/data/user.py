@@ -55,11 +55,11 @@ def get_user_by_username(username: str) -> UserInDB:
             select(User).where(User.username == username)
         ).first()
         if user:
-            return user
+            return UserInDB(**user.model_dump())
         raise Missing(msg=f"User with username {username!r} not found")
 
 
-def get_user_by_id(id: str) -> UserInDB:
+def get_user_by_id(id: str):
     """
     Get a user by id
 
@@ -85,7 +85,7 @@ def get_all_users() -> list[UserInDB]:
     """
     with Session(engine) as session:
         users = session.exec(select(User)).all()
-        return users
+        return [UserInDB(**u.model_dump()) for u in users]
 
 
 def create_user(user: UserCreate) -> UserInDB:
@@ -118,7 +118,7 @@ def create_user(user: UserCreate) -> UserInDB:
             session.add(n_user)
             session.commit()
             session.refresh(n_user)
-            return n_user
+            return UserInDB(**n_user.model_dump())
         except Exception as e:
             session.rollback()
             raise e
@@ -140,14 +140,15 @@ def update_user(user: UserUpdate) -> UserInDB:
                 n_user = get_user_by_id(user.id)
             except Missing as e:
                 raise e
-            try:
-                get_user_by_username(user.username)
-            except Missing:
-                pass
-            else:
-                raise Duplicate(
-                    f"User with username {user.username!r} already exists"
-                )
+            if user.username:
+                try:
+                    d_user = get_user_by_username(user.username)
+                    if d_user.id != user.id:
+                        raise Duplicate(
+                            msg=f"User with username {user.username!r} already exists"
+                        )
+                except Missing:
+                    pass
             if user.password:
                 n_user.password_hash = hashpw(
                     user.password.encode("utf-8"), gensalt()
@@ -158,7 +159,7 @@ def update_user(user: UserUpdate) -> UserInDB:
             session.add(n_user)
             session.commit()
             session.refresh(n_user)
-            return n_user
+            return UserInDB(**n_user.model_dump())
         except Exception as e:
             session.rollback()
             raise e
