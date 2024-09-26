@@ -5,7 +5,7 @@ import os
 os.environ["ENV"] = "test"
 from service import user
 from errors.errors import Duplicate, Missing
-from model.user import UserCreate, UserInDB, UserUpdate
+from model.user import UserCreate, UserUpdate
 
 faker = Faker()
 
@@ -18,7 +18,7 @@ def new_user() -> UserCreate:
 @fixture
 def updated_user() -> UserUpdate:
     return UserUpdate(
-        id=faker.uuid4(),
+        id=str(faker.uuid4()),
         username=faker.user_name(),
         password=faker.password(),
     )
@@ -27,7 +27,6 @@ def updated_user() -> UserUpdate:
 def test_create_user(new_user: UserCreate):
     created_user = user.create_user(new_user)
     assert created_user.username == new_user.username
-    assert created_user.password_hash != new_user.password
 
 
 def test_create_user_duplicate(new_user: UserCreate):
@@ -44,14 +43,12 @@ def test_get_user_by_id(new_user: UserCreate):
     created_user = user.create_user(new_user)
     user_by_id = user.get_user_by_id(created_user.id)
     assert user_by_id.username == new_user.username
-    assert user_by_id.password_hash == created_user.password_hash
 
 
 def test_get_user_by_username(new_user: UserCreate):
     created_user = user.create_user(new_user)
     user_by_username = user.get_user_by_username(created_user.username)
     assert user_by_username.username == new_user.username
-    assert user_by_username.password_hash == created_user.password_hash
 
 
 def test_get_all_users(new_user: UserCreate):
@@ -63,7 +60,7 @@ def test_get_all_users(new_user: UserCreate):
 
 def test_get_user_by_id_missing():
     with raises(Missing) as exc_info:
-        id = faker.uuid4()
+        id = str(faker.uuid4())
         user.get_user_by_id(id)
     assert exc_info.value.msg == f"User with id {id!r} not found"
 
@@ -83,12 +80,11 @@ def test_update_user(new_user: UserCreate, updated_user: UserUpdate):
     user.update_user(updated_user)
     user_by_id = user.get_user_by_id(created_user.id)
     assert user_by_id.username == updated_user.username
-    assert user_by_id.password_hash != updated_user.password
 
 
 def test_update_user_missing(new_user: UserCreate, updated_user: UserUpdate):
     with raises(Missing) as exc_info:
-        updated_user.id = faker.uuid4()
+        updated_user.id = str(faker.uuid4())
         user.update_user(updated_user)
     assert exc_info.value.msg == f"User with id {updated_user.id!r} not found"
 
@@ -118,6 +114,6 @@ def test_delete_user(new_user: UserCreate):
 
 def test_delete_user_missing():
     with raises(Missing) as exc_info:
-        id = faker.uuid4()
+        id = str(faker.uuid4())
         user.delete_user(id)
     assert exc_info.value.msg == f"User with id {id!r} not found"

@@ -3,16 +3,16 @@ from faker import Faker
 import os
 
 os.environ["ENV"] = "test"
-from model.user import UserCreate, UserInDB
+from model.user import UserCreate, UserInDB, UserOut
 from service import blog, user
-from errors.errors import Duplicate, Missing
-from model.blog import BlogCreate, BlogInDB, BlogUpdate
+from errors.errors import Missing
+from model.blog import BlogCreate, BlogUpdate
 
 faker = Faker()
 
 
 @fixture
-def new_user() -> UserInDB:
+def new_user() -> UserOut:
     return user.create_user(
         UserCreate(username=faker.user_name(), password=faker.password())
     )
@@ -28,7 +28,7 @@ def new_blog(new_user: UserInDB) -> BlogCreate:
 @fixture
 def updated_blog() -> BlogUpdate:
     return BlogUpdate(
-        id=faker.uuid4(), title=faker.sentence(), content=faker.text()
+        id=str(faker.uuid4()), title=faker.sentence(), content=faker.text()
     )
 
 
@@ -63,7 +63,7 @@ def test_update_blog(new_blog: BlogCreate, updated_blog: BlogUpdate):
 
 def test_update_blog_missing():
     with raises(Missing) as exc_info:
-        id = faker.uuid4()
+        id = str(faker.uuid4())
         blog.update_blog(
             BlogUpdate(id=id, title=faker.sentence(), content=faker.text())
         )
@@ -80,6 +80,6 @@ def test_delete_blog(new_blog: BlogCreate):
 
 def test_delete_blog_missing():
     with raises(Missing) as exc_info:
-        id = faker.uuid4()
+        id = str(faker.uuid4())
         blog.delete_blog(id)
     assert exc_info.value.msg == f"Blog with id {id!r} not found"

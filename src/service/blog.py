@@ -4,11 +4,11 @@ Blog service
 This module contains functions to interact with the blog data
 """
 
-from model.blog import BlogInDB, BlogCreate, BlogUpdate
+from model.blog import BlogInDB, BlogCreate, BlogUpdate, BlogOut
 from data import blog
 
 
-def create_blog(new_blog: BlogCreate) -> BlogInDB:
+def create_blog(new_blog: BlogCreate) -> BlogOut:
     """
     Create a new blog
 
@@ -19,12 +19,12 @@ def create_blog(new_blog: BlogCreate) -> BlogInDB:
         BlogInDB: BlogInDB object
     """
     try:
-        return blog.create_blog(new_blog)
+        return BlogOut(**blog.create_blog(new_blog).model_dump())
     except Exception as e:
         raise e
 
 
-def get_blog_by_id(id: str) -> BlogInDB:
+def get_blog_by_id(id: str) -> BlogOut:
     """
     Get a blog by id
 
@@ -35,12 +35,12 @@ def get_blog_by_id(id: str) -> BlogInDB:
         BlogInDB: BlogInDB object
     """
     try:
-        return blog.get_blog_by_id(id)
+        return BlogOut(**blog.get_blog_by_id(id).model_dump())
     except Exception as e:
         raise e
 
 
-def get_all_blogs() -> list[BlogInDB]:
+def get_all_blogs() -> list[BlogOut]:
     """
     Get all blogs
 
@@ -48,12 +48,12 @@ def get_all_blogs() -> list[BlogInDB]:
         List[BlogInDB]: List of BlogInDB objects
     """
     try:
-        return blog.get_all_blogs()
+        return [BlogOut(**b.model_dump()) for b in blog.get_all_blogs()]
     except Exception as e:
         raise e
 
 
-def update_blog(updated_blog: BlogUpdate) -> BlogInDB:
+def update_blog(updated_blog: BlogUpdate) -> BlogOut:
     """
     Update a blog
 
@@ -64,7 +64,7 @@ def update_blog(updated_blog: BlogUpdate) -> BlogInDB:
         BlogInDB: BlogInDB object
     """
     try:
-        return blog.update_blog(updated_blog)
+        return BlogOut(**blog.update_blog(updated_blog).model_dump())
     except Exception as e:
         raise e
 
