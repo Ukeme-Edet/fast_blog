@@ -9,6 +9,7 @@ from faker import Faker
 import os
 
 os.environ["ENV"] = "test"
+from model.user_role import UserRoleCreate, UserRoleUpdate
 from service import user
 from errors.errors import Duplicate, Missing
 from model.user import UserCreate, UserUpdate
@@ -43,6 +44,28 @@ def updated_user() -> UserUpdate:
         username=faker.user_name(),
         password=faker.password(),
     )
+
+
+@fixture
+def new_role() -> UserRoleCreate:
+    """
+    Create a new role
+
+    Returns:
+        UserRoleCreate: A new role
+    """
+    return UserRoleCreate(name=faker.word().zfill(2))
+
+
+@fixture
+def updated_role() -> UserRoleUpdate:
+    """
+    Create an updated role
+
+    Returns:
+        UserRoleCreate: An updated role
+    """
+    return UserRoleUpdate(name=faker.word().zfill(2))
 
 
 def test_create_user(new_user: UserCreate):
@@ -146,7 +169,7 @@ def test_update_user(new_user: UserCreate, updated_user: UserUpdate):
     assert user_by_id.username == updated_user.username
 
 
-def test_update_user_missing(new_user: UserCreate, updated_user: UserUpdate):
+def test_update_user_missing(updated_user: UserUpdate):
     """
     Test update user missing
 
@@ -207,3 +230,174 @@ def test_delete_user_missing():
         id = str(faker.uuid4())
         user.delete_user(id)
     assert exc_info.value.msg == f"User with id {id!r} not found"
+
+
+def test_user_role_update(new_user: UserCreate, new_role: UserRoleCreate):
+    """
+    Test user role update
+
+    Args:
+        new_user (UserCreate): A new user
+    """
+    created_user = user.create_user(new_user)
+    user.create_user_role(new_role)
+    user_role_update = user.user_role_update(created_user.id, new_role.name)
+    assert user_role_update == True
+
+
+def test_user_role_update_missing(new_user: UserCreate):
+    """
+    Test user role update missing
+    """
+    n_user = user.create_user(new_user)
+    with raises(Missing) as exc_info:
+        name = faker.word().zfill(2)
+        user.user_role_update(n_user.id, name)
+    assert exc_info.value.msg == f"User role with name {name!r} not found"
+
+
+def test_role_create(new_role: UserRoleCreate):
+    """
+    Test role create
+
+    Args:
+        new_role (UserRoleCreate): A new role
+    """
+    created_role = user.create_user_role(new_role)
+    assert created_role.name == new_role.name
+
+
+def test_role_create_duplicate(new_role: UserRoleCreate):
+    """
+    Test role create duplicate
+
+    Args:
+        new_role (UserRoleCreate): A new role
+    """
+    user.create_user_role(new_role)
+    with raises(Duplicate) as exc_info:
+        user.create_user_role(new_role)
+    assert (
+        exc_info.value.msg
+        == f"User role with name {new_role.name!r} already exists"
+    )
+
+
+def test_get_role_by_id(new_role: UserRoleCreate):
+    """
+    Test get role by id
+
+    Args:
+        new_role (UserRoleCreate): A new role
+    """
+    created_role = user.create_user_role(new_role)
+    role_by_id = user.get_user_role_by_id(created_role.id)
+    assert role_by_id.name == new_role.name
+
+
+def test_get_role_by_name(new_role: UserRoleCreate):
+    """
+    Test get role by name
+
+    Args:
+        new_role (UserRoleCreate): A new role
+    """
+    created_role = user.create_user_role(new_role)
+    role_by_name = user.get_user_role_by_name(created_role.name)
+    assert role_by_name.name == new_role.name
+
+
+def test_get_role_by_id_missing():
+    """
+    Test get role by id missing
+    """
+    with raises(Missing) as exc_info:
+        id = str(faker.uuid4())
+        user.get_user_role_by_id(id)
+    assert exc_info.value.msg == f"User role with id {id!r} not found"
+
+
+def test_get_role_by_name_missing():
+    """
+    Test get role by name missing
+    """
+    with raises(Missing) as exc_info:
+        name = faker.user_name()
+        user.get_user_role_by_name(name)
+    assert exc_info.value.msg == f"User role with name {name!r} not found"
+
+
+def test_update_role(new_role: UserRoleCreate, updated_role: UserRoleUpdate):
+    """
+    Test update role
+
+    Args:
+        new_role (UserRoleCreate): A new role
+        updated_role (UserRoleUpdate): An updated role
+    """
+    created_role = user.create_user_role(new_role)
+    user.update_user_role(created_role.id, updated_role)
+    role_by_id = user.get_user_role_by_id(created_role.id)
+    assert role_by_id.name == updated_role.name
+
+
+def test_update_role_missing(updated_role: UserRoleUpdate):
+    """
+    Test update role missing
+
+    Args:
+        new_role (UserRoleCreate): A new role
+        updated_role (UserRoleUpdate): An updated role
+    """
+    with raises(Missing) as exc_info:
+        id = str(faker.uuid4())
+        user.update_user_role(id, updated_role)
+    assert exc_info.value.msg == f"User role with id {id!r} not found"
+
+
+def test_update_role_duplicate(
+    new_role: UserRoleCreate, updated_role: UserRoleUpdate
+):
+    """
+    Test update role duplicate
+
+    Args:
+        new_role (UserRoleCreate): A new role
+        updated_role (UserRoleUpdate): An updated role
+    """
+    user.create_user_role(new_role)
+    created_role = user.create_user_role(UserRoleCreate(name=faker.word().zfill(2)))
+    updated_role.name = created_role.name
+    with raises(Duplicate) as exc_info:
+        user.update_user_role(created_role.id, updated_role)
+    assert (
+        exc_info.value.msg
+        == f"User role with name {updated_role.name!r} already exists"
+    )
+
+
+def test_delete_role(new_role: UserRoleCreate):
+    """
+    Test delete role
+
+    Args:
+        new_role (UserRoleCreate): A new role
+    """
+    created_role = user.create_user_role(new_role)
+    user.delete_user_role(created_role.id)
+    with raises(Missing) as exc_info:
+        user.get_user_role_by_id(created_role.id)
+    assert (
+        exc_info.value.msg
+        == f"User role with id {created_role.id!r} not found"
+    )
+
+
+def test_delete_role_missing():
+    """
+    Test delete role missing
+    """
+    with raises(Missing) as exc_info:
+        id = str(faker.uuid4())
+        user.delete_user_role(id)
+    assert exc_info.value.msg == f"User role with id {id!r} not found"
