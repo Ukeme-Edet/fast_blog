@@ -51,7 +51,7 @@ def new_user_role() -> UserRoleCreate:
     Returns:
         UserRoleCreate: A new user role
     """
-    return UserRoleCreate(name=faker.word())
+    return UserRoleCreate(name=faker.word().zfill(2))
 
 
 @fixture
@@ -270,7 +270,7 @@ def test_user_role_update_duplicate(new_user_role: UserRoleCreate):
         new_user_role (UserRoleCreate): A new user role
     """
     created_user_role = user.create_user_role(new_user_role)
-    new_user_role.name = faker.word()
+    new_user_role.name = faker.word().zfill(2)
     user.create_user_role(new_user_role)
     with raises(Duplicate) as exc_info:
         user.update_user_role(
@@ -329,7 +329,7 @@ def test_update_user_role_missing():
     Test update user role missing
     """
     user_id = str(faker.uuid4())
-    role_name = faker.word()
+    role_name = faker.word().zfill(2)
     with raises(Missing) as exc_info:
         user.user_role_update(user_id, role_name)
     assert exc_info.value.msg == f"User with id {user_id!r} not found"

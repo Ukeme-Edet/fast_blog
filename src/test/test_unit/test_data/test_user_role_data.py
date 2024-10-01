@@ -25,7 +25,7 @@ def new_user_role1() -> UserRoleCreate:
         UserRoleCreate: User role create object
     """
     return UserRoleCreate(
-        name=faker.word(),
+        name=faker.word().zfill(2),
     )
 
 
@@ -51,7 +51,7 @@ def new_user_role3() -> UserRoleCreate:
         UserRoleCreate: User role create object
     """
     return UserRoleCreate(
-        name=faker.word(),
+        name=faker.word().zfill(2),
     )
 
 
