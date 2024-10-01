@@ -20,11 +20,12 @@ class UserRole(SQLModel, table=True):
         name: str
     """
 
+    __tablename__: str = "user_role"
     id: str = Field(
         primary_key=True, default_factory=lambda: str(uuid.uuid4())
     )
     name: str = Field(min_length=2, max_length=100, unique=True, index=True)
-    users: list["User"] = Relationship(back_populates="role_id")
+    users: list["User"] = Relationship(back_populates="role")
 
 
 def get_user_role_by_id(id: str) -> UserRoleInDB:
@@ -99,7 +100,7 @@ def create_user_role(user_role_create: UserRoleCreate) -> UserRoleInDB:
         except Exception as e:
             session.rollback()
             raise Duplicate(
-                msg=f"User role with name {user_role.name!r} exists"
+                msg=f"User role with name {user_role.name!r} already exists"
             )
 
 
@@ -125,7 +126,7 @@ def update_user_role(
                 select(UserRole).where(UserRole.name == user_role_update.name)
             ).first():
                 raise Duplicate(
-                    msg=f"User role with name {user_role_update.name!r} exists"
+                    msg=f"User role with name {user_role_update.name!r} already exists"
                 )
             user_role.name = user_role_update.name
             session.add(user_role)
