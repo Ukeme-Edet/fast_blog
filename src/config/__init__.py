@@ -15,7 +15,10 @@ class Config:
         """
         Constructor
         """
-        pass
+        roles_permissions = {
+            "admin": ["create", "read", "update", "delete"],
+            "user": ["create", "read", "update"],
+        }
 
     def get_db_uri(self):
         """
