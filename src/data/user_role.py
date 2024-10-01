@@ -7,7 +7,7 @@ This module contains the data layer for the User Role model.
 import uuid
 from sqlmodel import Field, Relationship, SQLModel, Session, select
 from model.user_role import UserRoleInDB, UserRoleCreate, UserRoleUpdate
-from errors.errors import Missing
+from errors.errors import Missing, Duplicate
 from . import engine
 
 
@@ -23,7 +23,7 @@ class UserRole(SQLModel, table=True):
     id: str = Field(
         primary_key=True, default_factory=lambda: str(uuid.uuid4())
     )
-    name: str = Field(min_length=2, max_length=100)
+    name: str = Field(min_length=2, max_length=100, unique=True, index=True)
     users: list["User"] = Relationship(back_populates="role_id")
 
 
@@ -98,18 +98,20 @@ def create_user_role(user_role_create: UserRoleCreate) -> UserRoleInDB:
             return UserRoleInDB(**user_role.model_dump())
         except Exception as e:
             session.rollback()
-            raise e
+            raise Duplicate(
+                msg=f"User role with name {user_role.name!r} exists"
+            )
 
 
 def update_user_role(
-    id: str, user_role_create: UserRoleUpdate
+    id: str, user_role_update: UserRoleUpdate
 ) -> UserRoleInDB:
     """
     Update a user role
 
     Args:
         id: str - id of the user role
-        user_role_create: UserRoleCreate - user role create object
+        user_role_update: UserRoleCreate - user role create object
 
     Returns:
         UserRole: UserRole object
@@ -119,7 +121,13 @@ def update_user_role(
             select(UserRole).where(UserRole.id == id)
         ).first()
         if user_role:
-            user_role.name = user_role_create.name
+            if session.exec(
+                select(UserRole).where(UserRole.name == user_role_update.name)
+            ).first():
+                raise Duplicate(
+                    msg=f"User role with name {user_role_update.name!r} exists"
+                )
+            user_role.name = user_role_update.name
             session.add(user_role)
             session.commit()
             session.refresh(user_role)
