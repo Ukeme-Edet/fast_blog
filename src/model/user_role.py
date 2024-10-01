@@ -18,3 +18,16 @@ class UserRole(BaseModel):
 
     id: str
     name: str
+
+
+class UserRoleCreate(BaseModel):
+    """
+    User role create model
+
+    This class contains the attributes of the user role create model.
+
+    Attributes:
+        name (str): The name of the user role
+    """
+
+    name: str
