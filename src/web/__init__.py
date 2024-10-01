@@ -15,7 +15,9 @@ def create_app():
         return {"Hello": "World"}
 
     from web.user import user
+    from web.blog import blog
 
     app.include_router(user, prefix="/api")
+    app.include_router(blog, prefix="/api")
 
     return app
