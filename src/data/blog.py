@@ -8,7 +8,6 @@ import uuid
 from sqlmodel import Field, SQLModel, Session, select, Relationship
 from datetime import UTC, datetime
 from model.blog import BlogCreate, BlogUpdate, BlogInDB
-from model.user import User
 from errors.errors import Missing
 from . import engine
 
@@ -66,8 +65,16 @@ def get_blogs_by_user_id(user_id: str):
         List[Blog]: List of Blog objects
     """
     with Session(engine) as session:
-        blogs = session.exec(select(Blog).where(Blog.user_id == user_id)).all()
-        return blogs
+        try:
+            from data import User
+
+            user = session.exec(select(User).where(User.id == user_id)).first()
+            if user:
+                blogs = user.blogs
+                return blogs
+            raise Missing(msg=f"Blogs with user id {user_id!r} not found")
+        except Exception as e:
+            raise e
 
 
 def get_all_blogs():
@@ -105,6 +112,8 @@ def create_blog(blog: BlogCreate) -> BlogInDB:
             session.refresh(new_blog)
             return BlogInDB(**new_blog.model_dump())
         except Exception as e:
+            print(e)
+            session.rollback()
             raise e
 
 
@@ -132,7 +141,7 @@ def update_blog(blog: BlogUpdate) -> BlogInDB:
             session.add(blog_db)
             session.commit()
             session.refresh(blog_db)
-            return blog_db
+            return BlogInDB(**blog_db.model_dump())
         except Exception as e:
             session.rollback()
             raise e

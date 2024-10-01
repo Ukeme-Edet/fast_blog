@@ -12,7 +12,6 @@ from bcrypt import hashpw, checkpw, gensalt
 
 from errors.errors import Duplicate, Missing
 from data import engine
-from model.blog import Blog
 
 
 class User(SQLModel, table=True):
@@ -120,6 +119,7 @@ def create_user(user: UserCreate) -> UserInDB:
             session.refresh(n_user)
             return UserInDB(**n_user.model_dump())
         except Exception as e:
+            print(e)
             session.rollback()
             raise e
 

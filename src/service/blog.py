@@ -40,12 +40,31 @@ def get_blog_by_id(id: str) -> BlogOut:
         raise e
 
 
+def get_blogs_by_user_id(user_id: str) -> list[BlogOut]:
+    """
+    Get all blogs by user id
+
+    Args:
+        user_id (str): id of the user
+
+    Returns:
+        List[BlogInDB]: List of BlogInDB objects
+    """
+    try:
+        return [
+            BlogOut(**b.model_dump())
+            for b in blog.get_blogs_by_user_id(user_id)
+        ]
+    except Exception as e:
+        raise e
+
+
 def get_all_blogs() -> list[BlogOut]:
     """
     Get all blogs
 
     Returns:
-        List[BlogInDB]: List of BlogInDB objects
+        List[BlogOut]: List of BlogOut objects
     """
     try:
         return [BlogOut(**b.model_dump()) for b in blog.get_all_blogs()]
@@ -78,6 +97,6 @@ def delete_blog(id: str) -> None:
     """
     try:
         delete_blog = blog.get_blog_by_id(id)
-        blog.delete_blog(delete_blog)
+        blog.delete_blog(BlogInDB(**delete_blog.model_dump()))
     except Exception as e:
         raise e
