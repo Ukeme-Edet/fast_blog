@@ -31,6 +31,7 @@ class User(BaseModel):
     password_hash: str = Field(
         ..., min_length=2, description="The password hash of the user"
     )
+    role_id: str = Field(..., description="The role id of the user")
     time_created: datetime = Field(
         ..., description="The time the user was created"
     )
@@ -114,6 +115,7 @@ class UserOut(BaseModel):
         max_length=100,
         description="The username of the user",
     )
+    role: str = Field(..., description="The role of the user")
     time_created: datetime = Field(
         ..., description="The time the user was created"
     )
