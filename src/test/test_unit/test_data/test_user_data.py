@@ -7,6 +7,7 @@ This module contains the unit tests for the user data module.
 from pytest import fixture, raises
 from faker import Faker
 from model.user import UserCreate, UserCreate, UserInDB, UserUpdate
+from model.user_role import UserRoleCreate, UserRoleInDB, UserRoleUpdate
 import os
 from errors.errors import Duplicate, Missing
 
@@ -24,9 +25,7 @@ def new_user() -> UserCreate:
     Returns:
         UserCreate: A new user
     """
-    return UserCreate(
-        username=faker.user_name(), password=faker.password()
-    )
+    return UserCreate(username=faker.user_name(), password=faker.password())
 
 
 @fixture
@@ -41,6 +40,30 @@ def updated_user() -> UserUpdate:
         id=str(faker.uuid4()),
         username=faker.user_name(),
         password=faker.password(),
+    )
+
+
+@fixture
+def new_user_role() -> UserRoleCreate:
+    """
+    Create a new user role
+
+    Returns:
+        UserRoleCreate: A new user role
+    """
+    return UserRoleCreate(name=faker.word())
+
+
+@fixture
+def updated_user_role() -> UserRoleUpdate:
+    """
+    Create an updated user role
+
+    Returns:
+        UserRoleUpdate: An updated user role
+    """
+    return UserRoleUpdate(
+        name=faker.word(),
     )
 
 
@@ -149,6 +172,7 @@ def test_delete_user_missing():
                 id=id,
                 username=faker.user_name(),
                 password_hash=faker.password(),
+                role_id=str(faker.uuid4()),
                 time_created=faker.date_time(),
                 time_updated=faker.date_time(),
             )
@@ -180,3 +204,132 @@ def test_get_user_by_username(new_user: UserCreate):
     username = created_user.username
     user_by_username = user.get_user_by_username(username)
     assert user_by_username.username == username
+
+
+def test_user_role_create(new_user_role: UserRoleCreate):
+    """
+    Test create user role
+
+    Args:
+        new_user_role (UserRoleCreate): A new user role
+    """
+    created_user_role = user.create_user_role(new_user_role)
+    assert created_user_role.name == new_user_role.name
+
+
+def test_user_role_create_duplicate(new_user_role: UserRoleCreate):
+    """
+    Test create user role duplicate
+
+    Args:
+        new_user_role (UserRoleCreate): A new user role
+    """
+    user.create_user_role(new_user_role)
+    with raises(Duplicate) as exc_info:
+        user.create_user_role(new_user_role)
+    assert (
+        exc_info.value.msg
+        == f"User role with name {new_user_role.name!r} already exists"
+    )
+
+
+def test_user_role_update(
+    new_user_role: UserRoleCreate, updated_user_role: UserRoleUpdate
+):
+    """
+    Test update user role
+
+    Args:
+        new_user_role (UserRoleCreate): A new user role
+        updated_user_role (UserRoleUpdate): An updated user role
+    """
+    created_user_role = user.create_user_role(new_user_role)
+    user.update_user_role(created_user_role.id, updated_user_role)
+    user_role_by_id = user.get_user_role_by_id(created_user_role.id)
+    assert user_role_by_id.name == updated_user_role.name
+
+
+def test_user_role_update_missing(updated_user_role: UserRoleUpdate):
+    """
+    Test update user role missing
+
+    Args:
+        updated_user_role (UserRoleUpdate): An updated user role
+    """
+    id = str(faker.uuid4())
+    with raises(Missing) as exc_info:
+        user.update_user_role(id, updated_user_role)
+    assert exc_info.value.msg == f"User role with id {id!r} not found"
+
+
+def test_user_role_update_duplicate(new_user_role: UserRoleCreate):
+    """
+    Test update user role duplicate
+
+    Args:
+        new_user_role (UserRoleCreate): A new user role
+    """
+    created_user_role = user.create_user_role(new_user_role)
+    new_user_role.name = faker.word()
+    user.create_user_role(new_user_role)
+    with raises(Duplicate) as exc_info:
+        user.update_user_role(
+            created_user_role.id, UserRoleUpdate(name=new_user_role.name)
+        )
+    assert (
+        exc_info.value.msg
+        == f"User role with name {new_user_role.name!r} already exists"
+    )
+
+
+def test_user_role_delete(new_user_role: UserRoleCreate):
+    """
+    Test delete user role
+
+    Args:
+        new_user_role (UserRoleCreate): A new user role
+    """
+    created_user_role = user.create_user_role(new_user_role)
+    user.delete_user_role(created_user_role.id)
+    with raises(Missing) as exc_info:
+        user.get_user_role_by_id(created_user_role.id)
+    assert (
+        exc_info.value.msg
+        == f"User role with id {created_user_role.id!r} not found"
+    )
+
+
+def test_user_role_delete_missing():
+    """
+    Test delete user role missing
+    """
+    id = str(faker.uuid4())
+    with raises(Missing) as exc_info:
+        user.delete_user_role(id)
+    assert exc_info.value.msg == f"User role with id {id!r} not found"
+
+
+def test_update_user_role(new_user: UserCreate, new_user_role: UserRoleCreate):
+    """
+    Test update user role
+
+    Args:
+        new_user (UserCreate): A new user
+        new_user_role (UserRoleCreate): A new user role
+    """
+    created_user = user.create_user(new_user)
+    created_user_role = user.create_user_role(new_user_role)
+    user.user_role_update(created_user.id, created_user_role.name)
+    user_by_id = UserInDB(**user.get_user_by_id(created_user.id).model_dump())
+    assert user_by_id.role_id == created_user_role.id
+
+
+def test_update_user_role_missing():
+    """
+    Test update user role missing
+    """
+    user_id = str(faker.uuid4())
+    role_name = faker.word()
+    with raises(Missing) as exc_info:
+        user.user_role_update(user_id, role_name)
+    assert exc_info.value.msg == f"User with id {user_id!r} not found"
