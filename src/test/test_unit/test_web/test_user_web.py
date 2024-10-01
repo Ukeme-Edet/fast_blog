@@ -9,6 +9,9 @@ from faker import Faker
 from httpx import AsyncClient, ASGITransport
 from fastapi import FastAPI
 from httpx import Response
+import os
+
+os.environ["ENV"] = "test"
 from model.user import UserCreate, UserOut, UserUpdate
 from service import user as user_service
 from web import create_app
@@ -117,7 +120,7 @@ async def test_create_user(app: FastAPI, new_user: UserCreate):
         response: Response = await ac.post(
             "/api/user/", json=new_user.model_dump()
         )
-        assert response.status_code == 200
+        assert response.status_code == 201
         user = UserOut(**response.json())
         assert user.username == new_user.username
 
@@ -286,7 +289,7 @@ async def test_delete_user(app: FastAPI, new_user_in_db: UserOut):
     ) as ac:
         id = new_user_in_db.id
         response: Response = await ac.delete(f"/api/user/{id}")
-        assert response.status_code == 200
+        assert response.status_code == 204
         response: Response = await ac.get(f"/api/user/{id}")
         assert response.status_code == 404
         assert response.json()["detail"] == "User not found"
