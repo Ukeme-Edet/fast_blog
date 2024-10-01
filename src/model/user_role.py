@@ -31,3 +31,30 @@ class UserRoleCreate(BaseModel):
     """
 
     name: str
+
+
+class UserRoleUpdate(BaseModel):
+    """
+    User role update model
+
+    This class contains the attributes of the user role update model.
+
+    Attributes:
+        name (str): The name of the user role
+    """
+
+    name: str
+
+
+class UserRoleInDB(UserRole):
+    """
+    User role in database model
+
+    This class contains the attributes of the user role in database model.
+
+    Attributes:
+        id (str): The unique identifier for the user role
+        name (str): The name of the user role
+    """
+
+    pass
