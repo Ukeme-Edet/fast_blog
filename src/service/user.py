@@ -7,6 +7,7 @@ This module contains functions to interact with the user data
 from model.user import UserInDB, UserCreate, UserUpdate, UserOut
 from data import user
 from data import user_role
+from model.user_role import UserRoleCreate, UserRoleInDB, UserRoleUpdate
 
 
 def create_user(new_user: UserCreate) -> UserOut:
@@ -120,7 +121,7 @@ def delete_user(deleted_user_id: str):
         raise e
 
 
-def update_user_role(user_id: str, role_name: str):
+def user_role_update(user_id: str, role_name: str):
     """
     Update user role
 
@@ -130,7 +131,88 @@ def update_user_role(user_id: str, role_name: str):
     """
     try:
         role_id = user_role.get_user_role_by_name(role_name).id
-        user.update_user_role(user_id, role_id)
+        user.user_role_update(user_id, role_name)
         return True
+    except Exception as e:
+        raise e
+
+
+def create_user_role(role: UserRoleCreate) -> UserRoleInDB:
+    """
+    Create a new user role
+    Args:
+        user_role (UserRoleCreate): UserRoleCreate object
+    Returns:
+        UserRoleInDB: UserRoleInDB object
+    """
+    try:
+        return user_role.create_user_role(role)
+    except Exception as e:
+        raise e
+
+
+def get_user_role_by_id(role_id: str) -> UserRoleInDB:
+    """
+    Get a user role by id
+    Args:
+        role_id (str): id of the user role
+    Returns:
+        UserRoleInDB: UserRoleInDB object
+    """
+    try:
+        return user_role.get_user_role_by_id(role_id)
+    except Exception as e:
+        raise e
+
+
+def get_user_role_by_name(name: str) -> UserRoleInDB:
+    """
+    Get a user role by name
+    Args:
+        name: str - name of the user role
+    Returns:
+        UserRoleInDB: UserRoleInDB object
+    """
+    try:
+        return user_role.get_user_role_by_name(name)
+    except Exception as e:
+        raise e
+
+
+def get_all_user_roles() -> list[UserRoleInDB]:
+    """
+    Get all user roles
+    Returns:
+        list[UserRoleInDB]: List of UserRoleInDB objects
+    """
+    try:
+        return user_role.get_all_user_roles()
+    except Exception as e:
+        raise e
+
+
+def update_user_role(user_role_id: str, role: UserRoleUpdate) -> UserRoleInDB:
+    """
+    Update a user role
+    Args:
+        user_role_id (str): id of the user role
+        role (UserRoleUpdate): UserRoleUpdate object
+    Returns:
+        UserRoleInDB: UserRoleInDB object
+    """
+    try:
+        return user_role.update_user_role(user_role_id, role)
+    except Exception as e:
+        raise e
+
+
+def delete_user_role(user_role_id: str):
+    """
+    Delete a user role
+    Args:
+        user_role_id (str): id of the user role
+    """
+    try:
+        user_role.delete_user_role(user_role_id)
     except Exception as e:
         raise e
